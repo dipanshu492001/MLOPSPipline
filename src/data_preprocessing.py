@@ -5,9 +5,10 @@ from sklearn.preprocessing import LabelEncoder
 from nltk.stem.porter import PorterStemmer
 from nltk.corpus import stopwords
 import string
+import re
 import nltk
-nltk.download('stopwords')
-nltk.download('punkt')
+
+nltk.download('stopwords')  # we still use stopwords
 
 # Ensure the "logs" directory exists
 log_dir = 'logs'
@@ -33,21 +34,21 @@ logger.addHandler(file_handler)
 
 def transform_text(text):
     """
-    Transforms the input text by converting it to lowercase, tokenizing, removing stopwords and punctuation, and stemming.
+    Transforms the input text by converting it to lowercase, tokenizing (using regex),
+    removing stopwords and punctuation, and stemming.
     """
     ps = PorterStemmer()
     # Convert to lowercase
     text = text.lower()
-    # Tokenize the text
-    text = nltk.word_tokenize(text)
-    # Remove non-alphanumeric tokens
-    text = [word for word in text if word.isalnum()]
+    # Tokenize text using regex (extract words only)
+    tokens = re.findall(r'\b\w+\b', text)
     # Remove stopwords and punctuation
-    text = [word for word in text if word not in stopwords.words('english') and word not in string.punctuation]
+    stop_words = set(stopwords.words('english'))
+    tokens = [word for word in tokens if word not in stop_words and word not in string.punctuation]
     # Stem the words
-    text = [ps.stem(word) for word in text]
+    tokens = [ps.stem(word) for word in tokens]
     # Join the tokens back into a single string
-    return " ".join(text)
+    return " ".join(tokens)
 
 def preprocess_df(df, text_column='text', target_column='target'):
     """
